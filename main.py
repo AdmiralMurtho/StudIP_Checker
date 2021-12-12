@@ -33,7 +33,7 @@ def handle_message(update, context):
     user = getUser(update.message.chat.id)
     #user = getUser(3)
     if not user:
-        print("Kein User")
+        print("Kein Userr")
         known_user.append(User(update.message.chat.username, update.message.chat.id, "update", "", "", ""))
     else:
         print("user")
