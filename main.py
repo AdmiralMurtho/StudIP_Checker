@@ -13,28 +13,36 @@ import config
 
 API_KEY = config.API_KEY
 
-user = []
+known_user = []
+
 
 class User:
-    def __init__(self, update):
-        self.username = update.message.chat.username
-        self.user_id = update.message.chat.id
+    def __init__(self, username, user_id, update, stud_user, stud_pw, stud_addr):
+        self.username = username
+        self.user_id = user_id
         self.update = update
-        self.stud_user = ""
-        self.stud_pw = ""
-        self.stud_addr = ""
+        self.stud_user = stud_user
+        self.stud_pw = stud_pw
+        self.stud_addr = stud_addr
 
 
 def handle_message(update, context):
-    print(update.message.chat)
-    user.append(User(update))
+    #aprint(update.message.chat)
     text = update.message.text
-    # response = create_response(text)
-    response = check_StudIP()
-    for res in response:
-        update.message.reply_text(res)
-    update.message.reply_text("Na")
-    update.message.reply_text("Du")
+    print(update.message.chat.id)
+    user = getUser(update.message.chat.id)
+    #user = getUser(3)
+    if not user:
+        print("Kein User")
+        known_user.append(User(update.message.chat.username, update.message.chat.id, "update", "", "", ""))
+    else:
+        print("user")
+        response = check_StudIP(user.user_id)
+        for res in response:
+            update.message.reply_text(res)
+    #update.message.reply_text("Na")
+    #update.message.reply_text("Du")
+
 
 def create_response(input_text):
     if input_text == 'hi':
@@ -67,20 +75,35 @@ def detail(title):
     elif title.__contains__("Aufgaben"):
         return "Aufgabenblatt"
 
-def getUser():
+
+def getUser(searchID):
     con = sqlite3.connect('example.sqlite3')
     cur = con.cursor()
-    #cur.execute("CREATE TABLE user(username text, user_id integer , user_update text, stud_user text, stud_pw text, stud_addr text)")
-    #cur.execute("INSERT INTO user VALUES ('AdmiralMurtho',1086519082, '','hama7348','Test','https://elearning.hs-flensburg.de/studip/index.php?again=yes')")
-    #con.commit()
-    cur.execute("SELECT user_id FROM user WHERE username='AdmiralMurtho'")
-    print(cur.fetchall())
-    con.close()
+    # cur.execute("CREATE TABLE user(username text, user_id integer , user_update text, stud_user text, stud_pw text, stud_addr text)")
+    # cur.execute("INSERT INTO user VALUES ('AdmiralMurtho',1086519082, '','hama7348','Test','https://elearning.hs-flensburg.de/studip/index.php?again=yes')")
+    # con.commit()
+    cur.execute("SELECT * FROM user WHERE user_id={}".format(searchID))
+    print(cur.fetchall()[0])
+    print(len(cur.fetchall()[0]))
+    if len(cur.fetchall()) == 0:
+        print("Kein Userrr")
+        con.close()
+    else:
+        print(cur.fetchall())
+        user_datas = cur.fetchall()[0]
+        user = User(user_datas[0], user_datas[1], user_datas[2], user_datas[3], user_datas[4], user_datas[5])
+        con.close()
+        return user
+
+def changeValue(value, detail):
+    pass
+    # ToDo: Es muss hier noch die änderung von einer value in einem Feld verwirklciht werden
 
 def safeUser(user):
     con = sqlite3.connect('example.sqlite3')
     cur = con.cursor()
-    cur.execute("INSERT INTO user VALUES (user.username,user.user_id, user.user.toString(),user.stud_user,user.stud_pw,user.stud_addr)")
+    cur.execute(
+        "INSERT INTO user VALUES (user.username,user.user_id, user.user.toString(),user.stud_user,user.stud_pw,user.stud_addr)")
     print(cur)
     con.close()
 
@@ -117,7 +140,7 @@ def check_StudIP(user):
     ''' Liste an Veranstaltungen '''
     liste = driver.find_elements(By.TAG_NAME, "tbody")
     for list in liste:
-        #print(list.text)
+        # print(list.text)
         vorlesung = list.find_elements(By.TAG_NAME, "tr")
         for vorl in vorlesung:
             # print(vorl.text)
@@ -132,6 +155,7 @@ def check_StudIP(user):
     time.sleep(1)
     driver.quit()
     return response
+
 
 if __name__ == "__main__":
     main()
