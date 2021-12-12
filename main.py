@@ -87,6 +87,7 @@ def getUser(searchID):
     print(len(cur.fetchall()[0]))
     if len(cur.fetchall()) == 0:
         print("Kein Userrr")
+        print("Test2")
         con.close()
     else:
         print(cur.fetchall())
