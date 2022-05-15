@@ -14,6 +14,7 @@ import config
 API_KEY = config.API_KEY
 
 known_user = []
+test = "Hi"
 
 
 class User:
